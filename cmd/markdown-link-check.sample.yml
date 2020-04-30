@@ -1,0 +1,4 @@
+ignore:
+  - ^ftp:\/\/
+  - ^http:\/\/
+  - ^https:\/\/
