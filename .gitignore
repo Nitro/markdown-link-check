@@ -1,0 +1,10 @@
+# Config file.
+/cmd/markdown-link-check.yml
+
+# Binary file.
+/cmd/markdown-link-check
+/cmd/main
+/cmd/cmd
+
+# Visual Studio Code configuration.
+/.vscode
