@@ -8,3 +8,5 @@
 
 # Visual Studio Code configuration.
 /.vscode
+go.mod
+go.sum

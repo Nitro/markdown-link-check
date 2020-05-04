@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
@@ -18,16 +19,42 @@ type fileParser interface {
 	Do(payload []byte) []byte
 }
 
+// FileHelpersC contain the implemenation of helpers for providers
+type FileHelpersC struct{}
+
 // File provider is responsible for checking if the file exists at the filesystem.
 type File struct {
-	Path   string
-	Parser fileParser
+	Path    string
+	Parser  fileParser
+	Helpers FileHelpers
 
 	schemaRegex regexp.Regexp
 }
 
+// Helpers
+func (h FileHelpersC) fileExists(item string) (os.FileInfo, bool) {
+	finfo, err := os.Stat(item)
+	if os.IsNotExist(err) {
+		return finfo, false
+	}
+	return finfo, true
+}
+
+func (h FileHelpersC) regexCompile(str string) (*regexp.Regexp, error) {
+	return regexp.Compile(str)
+}
+
+func (h FileHelpersC) readFile(filer string) ([]byte, error) {
+	return ioutil.ReadFile(filer)
+}
+
+func (h FileHelpersC) docQuery(r io.Reader) (*goquery.Document, error) {
+	return goquery.NewDocumentFromReader(r)
+}
+
 // Init internal state.
 func (f *File) Init() error {
+
 	if f.Path == "" {
 		return errors.New("missing 'path'")
 	}
@@ -59,15 +86,13 @@ func (f File) Valid(ctx context.Context, filePath, uri string) (bool, error) {
 	}
 
 	path := filepath.Join(filepath.Dir(filePath), uri)
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return false, nil
-	}
-	return true, nil
+	_, itemExists := f.Helpers.fileExists(path)
+	return itemExists, nil
 }
 
 func (f *File) initRegex() error {
 	expr := "^.*$"
-	schema, err := regexp.Compile(expr)
+	schema, err := f.Helpers.regexCompile(expr)
 	if err != nil {
 		return fmt.Errorf("fail to compile the expression '%s': %w", expr, err)
 	}
@@ -77,6 +102,7 @@ func (f *File) initRegex() error {
 
 // checkMarkdown check if the uri is a Markdown, if positive, it will be responsible to detect if the link is valid.
 func (f File) checkMarkdown(path, uri string) (bool, error) {
+
 	if filepath.Ext(path) != ".md" {
 		return false, nil
 	}
@@ -97,21 +123,23 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 
 	// Check if the path exists, if not, it will return to the fallback verification at the caller.
 	// If the path is a directory we get a valid response.
-	pathStat, err := os.Stat(expandedPath)
-	if os.IsNotExist(err) {
+	pathStat, valid := f.Helpers.fileExists(expandedPath)
+
+	if !valid {
 		return false, nil
 	}
+
 	if pathStat.IsDir() {
 		return true, nil
 	}
 
-	payload, err := ioutil.ReadFile(expandedPath)
+	payload, err := f.Helpers.readFile(expandedPath)
 	if err != nil {
 		return false, fmt.Errorf("fail to read the file '%s': %w", expandedPath, err)
 	}
 	payload = f.Parser.Do(payload)
 
-	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(payload))
+	doc, err := f.Helpers.docQuery(bytes.NewBuffer(payload))
 	if err != nil {
 		return false, fmt.Errorf("fail to parse the HTML: %w", err)
 	}
