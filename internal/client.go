@@ -21,7 +21,7 @@ type Client struct {
 	Ignore []string
 
 	parser    parser.Markdown
-	providers []worker.WorkerProvider
+	providers []worker.Provider
 }
 
 // Run starts the application execution.
@@ -56,8 +56,8 @@ func (c *Client) init() error {
 	var p parser.Markdown
 	p.Init()
 	c.parser = p
-
-	f := provider.File{Path: c.Path, Parser: p}
+	h := provider.FileHelpersC{}
+	f := provider.File{Path: c.Path, Parser: p, Helpers: h}
 	if err := f.Init(); err != nil {
 		return fmt.Errorf("fail to initialize the file provider: %w", err)
 	}

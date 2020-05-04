@@ -9,9 +9,8 @@ import (
 	"nitro/markdown-link-check/internal/service"
 )
 
-// WorkerProvider represents the providers resonsible to process the entries.
-// nolint: golint
-type WorkerProvider interface {
+// Provider represents the providers resonsible to process the entries.
+type Provider interface {
 	Authority(uri string) bool
 	Valid(ctx context.Context, filePath, uri string) (bool, error)
 } // nolint: golint
@@ -40,7 +39,7 @@ type workerErrorUnit struct {
 // Worker process the entries to check if they're valid. Everything is basead on providers and they're executed in
 // order.
 type Worker struct {
-	Providers []WorkerProvider
+	Providers []Provider
 }
 
 // Process the entries.

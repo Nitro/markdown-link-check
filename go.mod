@@ -7,7 +7,11 @@ require (
 	github.com/alecthomas/kong v0.2.9
 	github.com/logrusorgru/aurora v0.0.0-20200102142835-e9ef32dff381
 	github.com/microcosm-cc/bluemonday v1.0.2
+	github.com/pkg/errors v0.8.1
 	github.com/russross/blackfriday/v2 v2.0.1
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/spf13/viper v1.6.3
+	github.com/stretchr/testify v1.3.0
+	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	golang.org/x/tools v0.0.0-20200504022951-6b6965ac5dd1 // indirect
 )
