@@ -15,7 +15,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
     - name: Run Tests
-      run: make test
+      run: |
+        go get -u github.com/rakyll/gotest
+        make test
     - name: Golint
       run: |
         go get -u golang.org/x/lint/golint
