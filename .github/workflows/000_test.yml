@@ -1,4 +1,4 @@
-on: [push, pull_request]
+on: [pull_request]
 name: Test
 jobs:
   test:
@@ -17,4 +17,6 @@ jobs:
     - name: Run Tests
       run: make test
     - name: Golint
-      run: make lint
+      run: |
+      go get -u golang.org/x/lint/golint
+      make lint
