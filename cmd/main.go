@@ -13,7 +13,13 @@ import (
 )
 
 type config struct {
-	Ignore []string `mapstructure:"ignore"`
+	Ignore   []string `mapstructure:"ignore"`
+	Provider []struct {
+		GitHub map[string]struct {
+			Owner string `mapstructure:"owner"`
+			Token string `mapstructure:"token"`
+		} `mapstructure:"github"`
+	} `mapstructure:"provider"`
 }
 
 func main() {
@@ -56,8 +62,21 @@ func configClient(path string) (internal.Client, error) {
 		return internal.Client{}, fmt.Errorf("fail to unmarshal the configuration: %w", err)
 	}
 
+	var github []internal.ClientProviderGithub
+	for _, provider := range cfg.Provider {
+		for _, gh := range provider.GitHub {
+			github = append(github, internal.ClientProviderGithub{
+				Token: gh.Token,
+				Owner: gh.Owner,
+			})
+		}
+	}
+
 	return internal.Client{
 		Ignore: cfg.Ignore,
+		Provider: internal.ClientProvider{
+			Github: github,
+		},
 	}, nil
 }
 

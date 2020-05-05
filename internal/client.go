@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sort"
 
 	"github.com/logrusorgru/aurora"
@@ -15,10 +16,23 @@ import (
 	"nitro/markdown-link-check/internal/service/worker"
 )
 
+// ClientProviderGithub holds the configuration for the GitHub provider.
+type ClientProviderGithub struct {
+	Token      string
+	Owner      string
+	Repository string
+}
+
+// ClientProvider holds the configuration for the providers.
+type ClientProvider struct {
+	Github []ClientProviderGithub
+}
+
 // Client is responsible to bootstrap the application.
 type Client struct {
-	Path   string
-	Ignore []string
+	Path     string
+	Ignore   []string
+	Provider ClientProvider
 
 	parser    parser.Markdown
 	providers []worker.Provider
@@ -61,6 +75,18 @@ func (c *Client) init() error {
 		return fmt.Errorf("fail to initialize the file provider: %w", err)
 	}
 	c.providers = append(c.providers, f)
+
+	for _, github := range c.Provider.Github {
+		client := provider.GitHub{
+			Token:      github.Token,
+			Owner:      github.Owner,
+			HTTPClient: http.DefaultClient,
+		}
+		if err := client.Init(); err != nil {
+			return fmt.Errorf("fail to iniitalize the GitHub provider: %w", err)
+		}
+		c.providers = append(c.providers, client)
+	}
 
 	return nil
 }
