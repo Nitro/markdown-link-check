@@ -10,10 +10,11 @@ import (
 )
 
 // WorkerProvider represents the providers resonsible to process the entries.
+// nolint: golint
 type WorkerProvider interface {
 	Authority(uri string) bool
 	Valid(ctx context.Context, filePath, uri string) (bool, error)
-}
+} // nolint: golint
 
 type workerError struct {
 	units []workerErrorUnit
@@ -24,7 +25,7 @@ func (w workerError) Error() string {
 		return w.units[0].err.Error()
 	}
 
-	var errors []string
+	errors := make([]string, 0, len(w.units))
 	for _, unit := range w.units {
 		errors = append(errors, unit.err.Error())
 	}

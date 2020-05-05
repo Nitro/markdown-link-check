@@ -1,0 +1,62 @@
+[linters]
+disable-all = true
+enable      = [
+  'bodyclose',
+  'deadcode',
+  'dupl',
+  'errcheck',
+  'gochecknoglobals',
+  'gochecknoinits',
+  'goconst',
+  'gocritic',
+  'gocyclo',
+  'gofmt',
+  'goimports',
+  'golint',
+  'gosec',
+  'gosimple',
+  'govet',
+  'lll',
+  'ineffassign',
+  'maligned',
+  'misspell',
+  'nakedret',
+  'prealloc',
+  'scopelint',
+  'staticcheck',
+  'structcheck',
+  'stylecheck',
+  'typecheck',
+  'unconvert',
+  'unparam',
+  'unused',
+  'varcheck',
+  'dogsled',
+  'godox',
+  'whitespace'
+]
+
+  [linter-settings.goimports]
+  local-prefixes = 'nitro'
+
+  [linter-settings.errcheck]
+  check-type-assertions = true
+  check-blank           = true
+
+  [linter-settings.unused]
+  check-exported = true
+
+  [linter-settings.unparam]
+  check-exported = true
+
+  [linter-settings.prealloc]
+  for-loops = true
+
+  [linter-settings.gocritic]
+  enabled-tags = [
+    'diagnostic',
+    'style',
+    'performance',
+    'experimental',
+    'opinionated'
+  ]

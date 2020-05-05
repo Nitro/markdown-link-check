@@ -55,7 +55,7 @@ func (s Scan) Process(path string) ([]service.Entry, error) {
 	}
 	sort.Strings(files)
 
-	var result []service.Entry
+	result := make([]service.Entry, 0, len(files))
 	for _, file := range files {
 		entries, err := s.processFile(file)
 		if err != nil {
