@@ -12,6 +12,10 @@ import (
 	"nitro/markdown-link-check/internal"
 )
 
+type config struct {
+	Ignore []string `mapstructure:"ignore"`
+}
+
 func main() {
 	var params struct {
 		Path   string `help:"Path to be processed" required:"true" arg:"true" type:"string"`
@@ -47,8 +51,13 @@ func configClient(path string) (internal.Client, error) {
 		return internal.Client{}, fmt.Errorf("fail to read the configuration file: %w", err)
 	}
 
+	var cfg config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		return internal.Client{}, fmt.Errorf("fail to unmarshal the configuration: %w", err)
+	}
+
 	return internal.Client{
-		Ignore: viper.GetStringSlice("ignore"),
+		Ignore: cfg.Ignore,
 	}, nil
 }
 
