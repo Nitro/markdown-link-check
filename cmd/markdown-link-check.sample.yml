@@ -2,3 +2,9 @@ ignore:
   - ^ftp:\/\/
   - ^http:\/\/
   - ^https:\/\/
+
+provider:
+  github:
+    nitro:
+      owner: nitro
+      token: token
