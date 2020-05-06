@@ -26,7 +26,7 @@ type fileHelpersC struct{}
 type File struct {
 	Path    string
 	Parser  fileParser
-	Helpers fileHelpersC
+	Helpers FileHelpers
 
 	schemaRegex regexp.Regexp
 }
@@ -54,6 +54,10 @@ func (h fileHelpersC) docQuery(r io.Reader) (*goquery.Document, error) {
 
 // Init internal state.
 func (f *File) Init() error {
+	// If not Helpers assigned: use default
+	if f.Helpers == nil {
+		f.Helpers = fileHelpersC{}
+	}
 
 	if f.Path == "" {
 		return errors.New("missing 'path'")
