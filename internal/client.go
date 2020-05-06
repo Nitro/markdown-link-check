@@ -56,8 +56,7 @@ func (c *Client) init() error {
 	var p parser.Markdown
 	p.Init()
 	c.parser = p
-	h := provider.FileHelpersC{}
-	f := provider.File{Path: c.Path, Parser: p, Helpers: h}
+	f := provider.File{Path: c.Path, Parser: p}
 	if err := f.Init(); err != nil {
 		return fmt.Errorf("fail to initialize the file provider: %w", err)
 	}
