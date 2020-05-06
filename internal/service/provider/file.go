@@ -19,20 +19,20 @@ type fileParser interface {
 	Do(payload []byte) []byte
 }
 
-// FileHelpersC contain the implemenation of helpers for providers
-type FileHelpersC struct{}
+// fileHelpersC contain the implemenation of helpers for providers
+type fileHelpersC struct{}
 
 // File provider is responsible for checking if the file exists at the filesystem.
 type File struct {
 	Path    string
 	Parser  fileParser
-	Helpers FileHelpers
+	Helpers fileHelpersC
 
 	schemaRegex regexp.Regexp
 }
 
 // Helpers
-func (h FileHelpersC) fileExists(item string) (os.FileInfo, bool) {
+func (h fileHelpersC) fileExists(item string) (os.FileInfo, bool) {
 	finfo, err := os.Stat(item)
 	if os.IsNotExist(err) {
 		return finfo, false
@@ -40,15 +40,15 @@ func (h FileHelpersC) fileExists(item string) (os.FileInfo, bool) {
 	return finfo, true
 }
 
-func (h FileHelpersC) regexCompile(str string) (*regexp.Regexp, error) {
+func (h fileHelpersC) regexCompile(str string) (*regexp.Regexp, error) {
 	return regexp.Compile(str)
 }
 
-func (h FileHelpersC) readFile(filer string) ([]byte, error) {
+func (h fileHelpersC) readFile(filer string) ([]byte, error) {
 	return ioutil.ReadFile(filer)
 }
 
-func (h FileHelpersC) docQuery(r io.Reader) (*goquery.Document, error) {
+func (h fileHelpersC) docQuery(r io.Reader) (*goquery.Document, error) {
 	return goquery.NewDocumentFromReader(r)
 }
 

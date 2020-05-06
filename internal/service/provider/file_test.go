@@ -76,9 +76,7 @@ func TestInit(t *testing.T) {
 	assert.EqualError(t, err, "missing 'path'")
 
 	// Fail: No Parser
-	h := FileHelpersC{}
-
-	f = File{Path: "fakepath", Parser: nil, Helpers: h}
+	f = File{Path: "fakepath", Parser: nil}
 	err = f.Init()
 	assert.EqualError(t, err, "missing 'parser'")
 
