@@ -7,7 +7,7 @@ Providers are the core of `markdown-link-check`. They enable the application to 
 ### File
 The file provider checks if the links points to valid files or directories. If it's a file and the link has an anchor it will be validated.
 
-## GitHub
+### GitHub
 There is a initial support for verification on private GitHub repositories. More information can be found at #7.
 
 ### Web
