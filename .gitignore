@@ -1,10 +1,14 @@
 # Config file.
 /cmd/markdown-link-check.yml
+/markdown-link-check.sample.yml
 
 # Binary file.
 /cmd/markdown-link-check
 /cmd/main
 /cmd/cmd
+
+# Temporary files.
+/dist
 
 # Visual Studio Code configuration.
 /.vscode

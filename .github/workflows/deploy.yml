@@ -1,0 +1,22 @@
+on:
+  push:
+    tags:
+      - '*'
+
+name: Deploy
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-18.04
+    container: gonitro/markdown-link-check:1
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run build
+        run: make build
+
+      - name: Deploy
+        run: goreleaser release --config misc/goreleaser/goreleaser.yml --rm-dist
