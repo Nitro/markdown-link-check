@@ -37,7 +37,8 @@ func TestGitHubInit(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, tt.shouldErr, (tt.client.Init() != nil))
@@ -108,7 +109,8 @@ func TestGitHubAuthority(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, tt.hasAuthority, client.Authority(tt.uri))
@@ -220,7 +222,8 @@ func TestGitHubValid(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
 			t.Parallel()
 
@@ -239,7 +242,6 @@ func TestGitHubValid(t *testing.T) {
 }
 
 type githubRepositoryMock struct {
-	ctx            context.Context
 	issueID        int
 	issueCommentID int64
 	repo           string

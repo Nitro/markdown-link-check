@@ -51,7 +51,8 @@ func TestWebAuthority(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
 			t.Parallel()
 			require.Equal(t, tt.hasAuthority, client.Authority(tt.uri))
@@ -101,7 +102,7 @@ func TestWebValid(t *testing.T) {
 				},
 				response: []*http.Response{
 					{
-						Header:     map[string][]string{"Location": []string{"https://go.dev"}},
+						Header:     map[string][]string{"Location": {"https://go.dev"}},
 						StatusCode: http.StatusMovedPermanently,
 						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 					},
@@ -125,7 +126,7 @@ func TestWebValid(t *testing.T) {
 				},
 				response: []*http.Response{
 					{
-						Header:     map[string][]string{"Location": []string{"https://go.dev"}},
+						Header:     map[string][]string{"Location": {"https://go.dev"}},
 						StatusCode: http.StatusPermanentRedirect,
 						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 					},
@@ -166,7 +167,7 @@ func TestWebValid(t *testing.T) {
 				},
 				response: []*http.Response{
 					{
-						Header:     map[string][]string{"Location": []string{"https://go.dev"}},
+						Header:     map[string][]string{"Location": {"https://go.dev"}},
 						StatusCode: http.StatusTemporaryRedirect,
 						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
 					},
@@ -211,11 +212,9 @@ func TestWebValid(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i := 0; i < len(tests); i++ {
+		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
-			// TODO: There is a shared state somewhere on this code because if the parallel test is enabled, things start to
-			// break.
-
 			client := Web{client: &tt.client}
 			require.NoError(t, client.Init())
 

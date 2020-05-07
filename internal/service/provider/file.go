@@ -106,7 +106,6 @@ func (f *File) initRegex() error {
 
 // checkMarkdown check if the uri is a Markdown, if positive, it will be responsible to detect if the link is valid.
 func (f File) checkMarkdown(path, uri string) (bool, error) {
-
 	if filepath.Ext(path) != ".md" {
 		return false, nil
 	}

@@ -21,22 +21,22 @@ type MockFileSimple struct {
 	mock.Mock
 }
 
-func (f MockFileSimple) regexCompile(str string) (*regexp.Regexp, error) {
+func (f *MockFileSimple) regexCompile(str string) (*regexp.Regexp, error) {
 	args := f.Called(str)
 	return nil, args.Error(1)
 }
-func (f MockFileSimple) fileExists(str string) (os.FileInfo, bool) {
+func (f *MockFileSimple) fileExists(str string) (os.FileInfo, bool) {
 	args := f.Called(str)
 	finfo := fileInfo{}
 	return finfo, args.Bool(0)
 }
-func (f MockFileSimple) readFile(str string) ([]byte, error) {
+func (f *MockFileSimple) readFile(str string) ([]byte, error) {
 	args := f.Called(str)
 	fakecontent := []byte(args.String((0)))
 	return fakecontent, nil
 }
 
-func (f MockFileSimple) docQuery(r io.Reader) (*goquery.Document, error) {
+func (f *MockFileSimple) docQuery(r io.Reader) (*goquery.Document, error) {
 	args := f.Called(r)
 	return nil, args.Error(1)
 }
@@ -88,7 +88,8 @@ func TestInit(t *testing.T) {
 
 	f = File{Path: "fakepath", Parser: p, Helpers: mh}
 	err = f.Init()
-	assert.EqualError(t, err, "fail to initialize the regex expressions: fail to compile the expression '^.*$': Force Regex Compile to fail")
+	msg := "fail to initialize the regex expressions: fail to compile the expression '^.*$': Force Regex Compile to fail"
+	assert.EqualError(t, err, msg)
 }
 
 /** Complete Test Cases **/
@@ -98,7 +99,9 @@ func TestValid(t *testing.T) {
 	l := "./fake_file"
 	pt := "."
 
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
+
 	mh := new(MockFileSimple)
 	mh.On("fileExists", "fake_file").Return(true)
 
@@ -114,7 +117,9 @@ func TestInvalid(t *testing.T) {
 	l := "./fake_file"
 	pt := "."
 
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, ctxCancel := context.WithCancel(context.Background())
+	defer ctxCancel()
+
 	mh := new(MockFileSimple)
 	mh.On("fileExists", "fake_file").Return(false)
 

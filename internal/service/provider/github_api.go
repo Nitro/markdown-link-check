@@ -97,7 +97,7 @@ func (g githubAPI) relatedPullRequests(ctx context.Context, repository, ref stri
 		return nil, fmt.Errorf("fail to unmarshal the response from GitHub: %w", err)
 	}
 
-	var ids []int
+	ids := make([]int, 0, len(rawResponse))
 	for _, entry := range rawResponse {
 		id, ok := entry["number"].(float64)
 		if !ok {

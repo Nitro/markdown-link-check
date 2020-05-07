@@ -63,9 +63,9 @@ func (w Worker) Process(ctx context.Context, entries []service.Entry) ([]service
 			if err != nil {
 				errors = append(errors, workerErrorUnit{err: err, entry: entry})
 			} else {
-			entry.Valid = valid
-			result = append(result, entry)
-		}
+				entry.Valid = valid
+				result = append(result, entry)
+			}
 			break
 		}
 	}
