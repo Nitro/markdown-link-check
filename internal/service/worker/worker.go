@@ -62,10 +62,11 @@ func (w Worker) Process(ctx context.Context, entries []service.Entry) ([]service
 			valid, err := provider.Valid(ctx, entry.Path, entry.Link)
 			if err != nil {
 				errors = append(errors, workerErrorUnit{err: err, entry: entry})
-				continue
-			}
+			} else {
 			entry.Valid = valid
 			result = append(result, entry)
+		}
+			break
 		}
 	}
 
