@@ -1,0 +1,35 @@
+project_name: markdown-link-check
+before:
+  hooks:
+    - go mod download
+    - cp cmd/markdown-link-check.sample.yml .
+
+builds:
+  - main: ./cmd/main.go
+    binary: markdown-link-check
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+archives:
+  - name_template: '{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+    wrap_in_directory: true
+    format: tar.gz
+    files:
+      - markdown-link-check.sample.yml
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksum'
+  algorithm: sha256
+
+release:
+  draft: true
+  prerelease: true
+  name_template: '{{.Tag}}'
+  github:
+    owner: nitro
+    name: markdown-link-check
