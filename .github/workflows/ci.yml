@@ -1,0 +1,46 @@
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
+
+name: CI
+jobs:
+  quality:
+    name: Quality
+    runs-on: ubuntu-18.04
+    container: gonitro/markdown-link-check:1
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Docker linter
+        run: hadolint misc/docker/Dockerfile
+
+      - name: Run Go dependency linter
+        run: |
+          go mod tidy
+          git add .
+          git diff --cached --exit-code
+
+      - name: Run Go Linter
+        run: make go-lint
+
+      - name: Run Go Test
+        run: make test
+
+  build:
+    name: Build
+    runs-on: ubuntu-18.04
+    container: gonitro/markdown-link-check:1
+    timeout-minutes: 10
+    needs: quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run build
+        run: make build
