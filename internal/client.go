@@ -88,6 +88,21 @@ func (c *Client) init() error {
 		c.providers = append(c.providers, client)
 	}
 
+	var w provider.Web
+	if err := w.Init(); err != nil {
+		return fmt.Errorf("fail to initialize the web provider: %w", err)
+	}
+	c.providers = append(c.providers, w)
+
+	var p parser.Markdown
+	p.Init()
+	c.parser = p
+	f := provider.File{Path: c.Path, Parser: p}
+	if err := f.Init(); err != nil {
+		return fmt.Errorf("fail to initialize the file provider: %w", err)
+	}
+	c.providers = append(c.providers, f)
+
 	return nil
 }
 
