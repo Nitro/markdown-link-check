@@ -67,15 +67,6 @@ func (c *Client) init() error {
 		return errors.New("missing 'path")
 	}
 
-	var p parser.Markdown
-	p.Init()
-	c.parser = p
-	f := provider.File{Path: c.Path, Parser: p}
-	if err := f.Init(); err != nil {
-		return fmt.Errorf("fail to initialize the file provider: %w", err)
-	}
-	c.providers = append(c.providers, f)
-
 	for _, github := range c.Provider.Github {
 		client := provider.GitHub{
 			Token:      github.Token,
