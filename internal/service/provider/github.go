@@ -39,7 +39,6 @@ type GitHub struct {
 	regexCommit      regexp.Regexp
 	regexIssue       regexp.Regexp
 	regexPullRequest regexp.Regexp
-	client           *github.Client
 }
 
 // Init the internal state.
@@ -77,10 +76,10 @@ func (g GitHub) Authority(uri string) bool {
 func (g GitHub) Valid(ctx context.Context, _, uri string) (bool, error) {
 	fns := []func(context.Context, string) (bool, error){
 		g.validOwner,
-		g.validRepository,
 		g.validCommit,
 		g.validIssue,
 		g.validPullRequest,
+		g.validRepository,
 	}
 	for _, fn := range fns {
 		valid, err := fn(ctx, uri)
@@ -160,7 +159,7 @@ func (g *GitHub) initRegex() error {
 	return nil
 }
 
-// validOwner is not doing the complete verification as it's not avaiable at the API. We're trusting that the owner
+// validOwner is not doing the complete verification as it's not available at the API. We're trusting that the owner
 // exists based on the configuration the client provided.
 func (g GitHub) validOwner(ctx context.Context, uri string) (bool, error) {
 	fragments := g.regexOwner.FindStringSubmatch(uri)
