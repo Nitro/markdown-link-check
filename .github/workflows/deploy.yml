@@ -19,4 +19,6 @@ jobs:
         run: make build
 
       - name: Deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: goreleaser release --config misc/goreleaser/goreleaser.yml --rm-dist
