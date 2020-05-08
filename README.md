@@ -5,7 +5,7 @@ This application is used to find broken links at markdown files.
 Providers are the core of `markdown-link-check`. They enable the application to perform new kinds of checks like validating a resource that exists in Jira or even at an FTP server.
 
 ### File
-The file provider checks if the links point to valid files or directories. If the link points to a file and it has a anchor it will be validate as well.
+The file provider checks if the links point to valid files or directories. If the link points to a file and it has an anchor it will be validated as well.
 
 ### GitHub
 There is initial support for verification on private GitHub repositories. More information can be found at #7.
