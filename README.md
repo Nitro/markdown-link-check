@@ -33,3 +33,10 @@ Flags:
       --help             Show context-sensitive help.
   -c, --config=STRING    Path to the configuration file.
 ```
+
+## CI
+### GitHub Actions
+There is a [action](https://github.com/Nitro/markdown-link-check-action) available.
+
+### Others
+It's possible to build from the source or use a [pre-built release](https://github.com/Nitro/markdown-link-check-action/releases).
