@@ -114,7 +114,7 @@ func (c Client) output(entries []service.Entry) bool {
 			result = true
 		}
 
-		fmt.Print(aurora.Bold(aurora.Gray(24, "File: ")), key)
+		fmt.Print(aurora.Bold(key))
 		for _, entry := range entries {
 			if entry.Valid {
 				continue
