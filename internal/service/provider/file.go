@@ -17,6 +17,7 @@ import (
 
 type fileParser interface {
 	Do(payload []byte) []byte
+	SanitizedAnchorName(text string) string
 }
 
 // fileHelpersC contain the implemenation of helpers for providers
@@ -149,24 +150,24 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 
 	// The anchors are generated as links on the HTML. Here we'll look for the link, if we found it, it's a valid
 	// response.
-	var found bool
-	doc.Find("a").Each(func(i int, selection *goquery.Selection) {
-		if found {
-			return
-		}
+	var (
+		found    bool
+		fragment = f.Parser.SanitizedAnchorName(parsedURI.Fragment)
+	)
+	for i := 1; (i <= 6) && (!found); i++ {
+		doc.Find(fmt.Sprintf("h%d", i)).Each(func(i int, selection *goquery.Selection) {
+			if found {
+				return
+			}
 
-		href, ok := selection.Attr("href")
-		if !ok {
-			return
-		}
+			id, ok := selection.Attr("id")
+			if !ok {
+				return
+			}
 
-		rel, ok := selection.Attr("rel")
-		if !ok {
-			return
-		}
-
-		found = ((href == uri) && (rel == "nofollow"))
-	})
+			found = (id == fragment)
+		})
+	}
 
 	return found, nil
 }
