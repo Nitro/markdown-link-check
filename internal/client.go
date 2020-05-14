@@ -67,6 +67,12 @@ func (c *Client) init() error {
 		return errors.New("missing 'path")
 	}
 
+	var email provider.Email
+	if err := email.Init(); err != nil {
+		return fmt.Errorf("fail to iniitalize the email provider: %w", err)
+	}
+	c.providers = append(c.providers, email)
+
 	for _, github := range c.Provider.Github {
 		client := provider.GitHub{
 			Token:      github.Token,
