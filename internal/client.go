@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 
 	"github.com/logrusorgru/aurora"
@@ -65,6 +66,14 @@ func (c Client) Run(ctx context.Context) (bool, error) {
 func (c *Client) init() error {
 	if c.Path == "" {
 		return errors.New("missing 'path")
+	}
+
+	stat, err := os.Stat(c.Path)
+	if os.IsNotExist(err) {
+		return fmt.Errorf("path does not exist: %w", err)
+	}
+	if !stat.IsDir() {
+		return errors.New("path is expected to be a directory")
 	}
 
 	var email provider.Email
