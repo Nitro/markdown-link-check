@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 
 	"github.com/logrusorgru/aurora"
 
@@ -129,7 +130,7 @@ func (c Client) output(entries []service.Entry) bool {
 			result = true
 		}
 
-		fmt.Print(aurora.Bold(key))
+		fmt.Print(aurora.Bold(c.relativePath(key)))
 		for _, entry := range entries {
 			if entry.Valid {
 				continue
@@ -176,6 +177,10 @@ func (Client) hasInvalidLink(entries []service.Entry) bool {
 		}
 	}
 	return false
+}
+
+func (c Client) relativePath(path string) string {
+	return strings.Replace(path, c.Path, "", -1)
 }
 
 type serviceEntrySort []service.Entry
