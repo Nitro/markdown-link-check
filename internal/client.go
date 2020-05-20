@@ -180,7 +180,7 @@ func (Client) hasInvalidLink(entries []service.Entry) bool {
 }
 
 func (c Client) relativePath(path string) string {
-	return strings.Replace(path, c.Path, "", -1)
+	return strings.TrimPrefix(path, c.Path)
 }
 
 type serviceEntrySort []service.Entry
