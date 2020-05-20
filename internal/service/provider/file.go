@@ -145,7 +145,7 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 	// response.
 	var (
 		found    bool
-		fragment = strings.ToLower(f.Parser.SanitizedAnchorName(parsedURI.Fragment))
+		fragment = f.Parser.SanitizedAnchorName(parsedURI.Fragment)
 	)
 	for i := 1; (i <= 6) && (!found); i++ {
 		doc.Find(fmt.Sprintf("h%d", i)).Each(func(i int, selection *goquery.Selection) {
