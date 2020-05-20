@@ -6,6 +6,7 @@
 /cmd/markdown-link-check
 /cmd/main
 /cmd/cmd
+/cmd/__debug_bin
 
 # Temporary files.
 /dist
