@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -144,7 +145,7 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 	// response.
 	var (
 		found    bool
-		fragment = f.Parser.SanitizedAnchorName(parsedURI.Fragment)
+		fragment = strings.ToLower(f.Parser.SanitizedAnchorName(parsedURI.Fragment))
 	)
 	for i := 1; (i <= 6) && (!found); i++ {
 		doc.Find(fmt.Sprintf("h%d", i)).Each(func(i int, selection *goquery.Selection) {
@@ -157,7 +158,20 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 				return
 			}
 
-			found = (id == fragment)
+			// Check if the frament is in the id, this is for normal links.
+			found = (strings.ToLower(id) == fragment)
+			if found {
+				return
+			}
+
+			// The fragment can point to a link as well, on this case we need to check if there is a link inside the h tag
+			// with the fragment.
+			selection.Each(func(_ int, selection *goquery.Selection) {
+				if found {
+					return
+				}
+				found = (strings.ToLower(selection.Text()) == fragment)
+			})
 		})
 	}
 
