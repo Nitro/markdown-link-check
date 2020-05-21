@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-DOCKER_IMAGE := gonitro/markdown-link-check:1
+DOCKER_IMAGE := gonitro/markdown-link-check:2
 
 .PHONY: build
 build:

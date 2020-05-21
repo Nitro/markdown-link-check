@@ -1,6 +1,6 @@
-FROM golangci/golangci-lint:v1.26.0 AS golangci
-FROM goreleaser/goreleaser:v0.133 AS goreleaser
-FROM golang:1.14.2-buster
+FROM golangci/golangci-lint:v1.27.0 AS golangci
+FROM goreleaser/goreleaser:v0.135 AS goreleaser
+FROM golang:1.14.3-buster
 
 SHELL ["/bin/bash", "-c"]
 
