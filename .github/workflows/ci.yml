@@ -9,7 +9,7 @@ jobs:
   quality:
     name: Quality
     runs-on: ubuntu-18.04
-    container: gonitro/markdown-link-check:1
+    container: gonitro/markdown-link-check:2
     timeout-minutes: 10
 
     steps:
@@ -34,7 +34,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-18.04
-    container: gonitro/markdown-link-check:1
+    container: gonitro/markdown-link-check:2
     timeout-minutes: 10
     needs: quality
 
