@@ -228,7 +228,7 @@ func TestFileValid(t *testing.T) {
 			},
 		},
 		{
-			message:   "attest that the markdown file has the anchor #4",
+			message:   "attest that the markdown file has the anchor #5",
 			ctx:       context.Background(),
 			path:      "file.md",
 			uri:       "another.md#Anchor",
