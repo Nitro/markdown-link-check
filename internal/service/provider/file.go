@@ -130,6 +130,10 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 		return true, nil
 	}
 
+	if parsedURI.Fragment == "" {
+		return true, nil
+	}
+
 	payload, err := f.reader.readFile(expandedPath)
 	if err != nil {
 		return false, fmt.Errorf("fail to read the file '%s': %w", expandedPath, err)

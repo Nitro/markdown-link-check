@@ -119,7 +119,7 @@ func TestFileValid(t *testing.T) {
 			},
 		},
 		{
-			message:   "attest that the markdown file exists and the uri is valid",
+			message:   "attest that the markdown file exists and the uri is valid #1",
 			ctx:       context.Background(),
 			path:      "file.md",
 			uri:       "another-file",
@@ -128,6 +128,19 @@ func TestFileValid(t *testing.T) {
 			reader: func() *fileReaderMock {
 				var reader fileReaderMock
 				reader.On("fileExists", "another-file").Return(fileInfoMock{}, true)
+				return &reader
+			},
+		},
+		{
+			message:   "attest that the markdown file exists and the uri is valid #2",
+			ctx:       context.Background(),
+			path:      "file.md",
+			uri:       "another-file.md",
+			isValid:   true,
+			shouldErr: false,
+			reader: func() *fileReaderMock {
+				var reader fileReaderMock
+				reader.On("fileExists", "another-file.md").Return(fileInfoMock{}, true)
 				return &reader
 			},
 		},
@@ -263,7 +276,7 @@ func TestFileValid(t *testing.T) {
 			message:   "attest that that an error happens during the file read",
 			ctx:       context.Background(),
 			path:      "file.md",
-			uri:       "another-file.md",
+			uri:       "another-file.md#anchor",
 			isValid:   false,
 			shouldErr: true,
 			reader: func() *fileReaderMock {
