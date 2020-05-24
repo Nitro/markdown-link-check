@@ -145,12 +145,23 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 		return false, fmt.Errorf("fail to parse the HTML: %w", err)
 	}
 
-	// The anchors are generated as links on the HTML. Here we'll look for the link, if we found it, it's a valid
-	// response.
-	var (
-		found    bool
-		fragment = f.Parser.SanitizedAnchorName(parsedURI.Fragment)
-	)
+	fragment := f.Parser.SanitizedAnchorName(parsedURI.Fragment)
+	handlers := []func(*goquery.Document, string, string) bool{
+		f.checkMarkdownH,
+		f.checkMarkdownLi,
+	}
+	for _, h := range handlers {
+		if h(doc, fragment, parsedURI.Fragment) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+// checkMarkdownH checks if the link is in a 'h' tag.
+func (File) checkMarkdownH(doc *goquery.Document, fragment, _ string) bool {
+	var found bool
 	for i := 1; (i <= 6) && (!found); i++ {
 		doc.Find(fmt.Sprintf("h%d", i)).Each(func(i int, selection *goquery.Selection) {
 			if found {
@@ -178,6 +189,17 @@ func (f File) checkMarkdown(path, uri string) (bool, error) {
 			})
 		})
 	}
+	return found
+}
 
-	return found, nil
+// checkMarkdownLi checks if the link is present inside a 'li' tag.
+func (f File) checkMarkdownLi(doc *goquery.Document, _, fragment string) bool {
+	var found bool
+	doc.Find("li").Each(func(_ int, selection *goquery.Selection) {
+		if found {
+			return
+		}
+		found = (f.Parser.SanitizedAnchorName(selection.Text()) == fragment)
+	})
+	return found
 }

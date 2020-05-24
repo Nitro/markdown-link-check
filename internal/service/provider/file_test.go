@@ -273,6 +273,25 @@ func TestFileValid(t *testing.T) {
 			},
 		},
 		{
+			message:   "attest that the markdown file has the anchor #7",
+			ctx:       context.Background(),
+			path:      "file.md",
+			uri:       "another.md#anchor",
+			isValid:   true,
+			shouldErr: false,
+			reader: func() *fileReaderMock {
+				payload := bytes.NewBufferString("")
+				fmt.Fprintln(payload, "1. # something")
+				fmt.Fprintln(payload, "2. ### anchor")
+				fmt.Fprintln(payload, "3. ## something else")
+
+				var reader fileReaderMock
+				reader.On("fileExists", "another.md").Return(fileInfoMock{}, true)
+				reader.On("readFile", "another.md").Return(payload.Bytes(), nil)
+				return &reader
+			},
+		},
+		{
 			message:   "attest that that an error happens during the file read",
 			ctx:       context.Background(),
 			path:      "file.md",
