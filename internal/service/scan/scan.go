@@ -21,10 +21,12 @@ type scanParser interface {
 
 // Scan is responsible for reading, parsing and extracting links from the markdown files.
 type Scan struct {
-	Ignore []string
-	Parser scanParser
+	IgnoreFile []string
+	IgnoreLink []string
+	Parser     scanParser
 
-	regex []regexp.Regexp
+	regexFile []regexp.Regexp
+	regexLink []regexp.Regexp
 }
 
 // Init the internal state.
@@ -33,13 +35,27 @@ func (s *Scan) Init() error {
 		return errors.New("missing 'parser'")
 	}
 
-	for _, ignore := range s.Ignore {
-		regex, err := regexp.Compile(ignore)
-		if err != nil {
-			return fmt.Errorf("fail to compile regex '%s': %w", ignore, err)
+	compile := func(expressions []string) ([]regexp.Regexp, error) {
+		out := make([]regexp.Regexp, 0, len(expressions))
+		for _, rawExpr := range expressions {
+			expr, err := regexp.Compile(rawExpr)
+			if err != nil {
+				return nil, fmt.Errorf("fail to compile the expression '%s': %w", rawExpr, err)
+			}
+			out = append(out, *expr)
 		}
-		s.regex = append(s.regex, *regex)
+		return out, nil
 	}
+
+	var err error
+	if s.regexFile, err = compile(s.IgnoreFile); err != nil {
+		return fmt.Errorf("fail to compile ignore file regex: %w", err)
+	}
+
+	if s.regexLink, err = compile(s.IgnoreLink); err != nil {
+		return fmt.Errorf("fail to compile ignore link regex: %w", err)
+	}
+
 	return nil
 }
 
@@ -78,12 +94,18 @@ func (Scan) isDir(path string) error {
 	return nil
 }
 
-func (Scan) listFiles(path string) ([]string, error) {
+func (s Scan) listFiles(path string) ([]string, error) {
 	var paths []string
 
 	walkFn := func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+
+		for _, regex := range s.regexFile {
+			if regex.Match([]byte(path)) {
+				return nil
+			}
 		}
 
 		if filepath.Ext(path) != ".md" {
@@ -134,7 +156,7 @@ func (s Scan) extractLinks(payload []byte) ([]string, error) {
 			return
 		}
 
-		for _, regex := range s.regex {
+		for _, regex := range s.regexLink {
 			if regex.Match([]byte(href)) {
 				return
 			}

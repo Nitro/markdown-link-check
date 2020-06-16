@@ -18,6 +18,12 @@ import (
 	"nitro/markdown-link-check/internal/service/worker"
 )
 
+// ClientIgnore holds the ignore list for links and files.
+type ClientIgnore struct {
+	Link []string
+	File []string
+}
+
 // ClientProviderGithub holds the configuration for the GitHub provider.
 type ClientProviderGithub struct {
 	Token      string
@@ -33,7 +39,7 @@ type ClientProvider struct {
 // Client is responsible to bootstrap the application.
 type Client struct {
 	Path     string
-	Ignore   []string
+	Ignore   ClientIgnore
 	Provider ClientProvider
 
 	parser    parser.Markdown
@@ -46,7 +52,7 @@ func (c Client) Run(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("fail during init: %w", err)
 	}
 
-	s := scan.Scan{Ignore: c.Ignore, Parser: c.parser}
+	s := scan.Scan{IgnoreFile: c.Ignore.File, IgnoreLink: c.Ignore.Link, Parser: c.parser}
 	if err := s.Init(); err != nil {
 		return false, fmt.Errorf("fail to initialize the scan service: %w", err)
 	}
