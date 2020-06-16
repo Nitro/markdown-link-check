@@ -1,7 +1,14 @@
+# Both link and file are regex based matchers. More information about the syntax
+# at the Go documentation: https://github.com/google/re2/wiki/Syntax
 ignore:
-  - ^ftp:\/\/
-  - ^http:\/\/
-  - ^https:\/\/
+  link:
+    - ^ftp:\/\/
+    - ^http:\/\/
+    - ^https:\/\/
+
+  file:
+    - old
+    - temp/files
 
 provider:
   github:

@@ -13,7 +13,10 @@ import (
 )
 
 type config struct {
-	Ignore   []string `mapstructure:"ignore"`
+	Ignore struct {
+		Link []string `mapstructure:"link"`
+		File []string `mapstructure:"file"`
+	} `mapstructure:"ignore"`
 	Provider []struct {
 		GitHub map[string]struct {
 			Owner string `mapstructure:"owner"`
@@ -73,7 +76,10 @@ func configClient(path string) (internal.Client, error) {
 	}
 
 	return internal.Client{
-		Ignore: cfg.Ignore,
+		Ignore: internal.ClientIgnore{
+			File: cfg.Ignore.File,
+			Link: cfg.Ignore.Link,
+		},
 		Provider: internal.ClientProvider{
 			Github: github,
 		},
