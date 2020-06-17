@@ -42,8 +42,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Run build
-        run: make build
-
       - name: Run release command test
         run: goreleaser release --config misc/goreleaser/goreleaser.yml --rm-dist --snapshot
