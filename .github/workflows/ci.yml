@@ -9,7 +9,7 @@ jobs:
   quality:
     name: Quality
     runs-on: ubuntu-18.04
-    container: gonitro/markdown-link-check:4
+    container: gonitro/markdown-link-check:5
     timeout-minutes: 10
 
     steps:
@@ -36,12 +36,12 @@ jobs:
         run: make go-lint
 
       - name: Run Go Test
-        run: make test
+        run: make test ARGS='-json' | tparse -all
 
   build:
     name: Build
     runs-on: ubuntu-18.04
-    container: gonitro/markdown-link-check:4
+    container: gonitro/markdown-link-check:5
     timeout-minutes: 10
     needs: quality
 
