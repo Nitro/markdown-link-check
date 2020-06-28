@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-DOCKER_IMAGE := gonitro/markdown-link-check:4
+DOCKER_IMAGE := gonitro/markdown-link-check:5
 
 .PHONY: build
 build:
@@ -7,7 +7,7 @@ build:
 
 .PHONY: test
 test:
-	@go test -race -cover -covermode=atomic ./...
+	@go test -race -cover -covermode=atomic ${ARGS} ./...
 
 .PHONY: go-lint
 go-lint:
