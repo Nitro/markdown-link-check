@@ -11,6 +11,16 @@ ignore:
     - temp/files
 
 provider:
+  http:
+    header:
+      User-Agent: Chrome
+
+    overwrite:
+      ^https:\/\/custom-website\.com:
+        header:
+          Content-Type: application/json
+          User-Agent: Firefox
+
   github:
     nitro:
       owner: nitro

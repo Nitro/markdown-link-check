@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -102,6 +103,24 @@ func TestWebValid(t *testing.T) {
 			return
 		}
 
+		if r.URL.Path == "/valid-user-agent-chrome" {
+			if r.Header.Get("user-agent") == "chrome" {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+
+		if r.URL.Path == "/valid-user-agent-firefox" {
+			if r.Header.Get("user-agent") == "firefox" {
+				w.WriteHeader(http.StatusOK)
+			} else {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+
 		if r.URL.Path == "/307" {
 			w.WriteHeader(http.StatusTemporaryRedirect)
 			return
@@ -167,6 +186,20 @@ func TestWebValid(t *testing.T) {
 			isValid:   true,
 		},
 		{
+			message:   "attest the URI as valid and have the correct user agent #1",
+			ctx:       context.Background(),
+			endpoint:  url.URL{Path: "/valid-user-agent-chrome", Opaque: "chrome"},
+			shouldErr: false,
+			isValid:   true,
+		},
+		{
+			message:   "attest the URI as valid and have the correct user agent #2",
+			ctx:       context.Background(),
+			endpoint:  url.URL{Path: "/valid-user-agent-firefox"},
+			shouldErr: false,
+			isValid:   true,
+		},
+		{
 			message:   "attest the URI as invalid because of a temporary redirect",
 			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/307"},
@@ -193,13 +226,21 @@ func TestWebValid(t *testing.T) {
 		result := *serverEndpoint
 		result.Path = endpoint.Path
 		result.Fragment = endpoint.Fragment
+		if endpoint.Opaque == "chrome" {
+			result.Host = strings.Replace(result.Host, "127.0.0.1", "localhost", -1)
+		}
 		return result.String()
 	}
 
 	for i := 0; i < len(tests); i++ {
 		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
-			var client Web
+			client := Web{
+				Config:          WebConfig{Header: make(http.Header)},
+				ConfigOverwrite: map[string]WebConfig{"http://localhost": {Header: make(http.Header)}},
+			}
+			client.Config.Header.Set("user-agent", "firefox")
+			client.ConfigOverwrite["http://localhost"].Header.Set("user-agent", "chrome")
 			require.NoError(t, client.Init())
 			defer client.Close()
 
