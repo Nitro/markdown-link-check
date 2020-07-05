@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -17,7 +18,14 @@ type config struct {
 		Link []string `mapstructure:"link"`
 		File []string `mapstructure:"file"`
 	} `mapstructure:"ignore"`
-	Provider []struct {
+	Provider struct {
+		Web struct {
+			Header    map[string][]string `mapstructure:"header"`
+			Overwrite []struct {
+				Endpoint string              `mapstructure:"endpoint"`
+				Header   map[string][]string `mapstructure:"header"`
+			} `mapstructure:"overwrite"`
+		} `mapstructure:"web"`
 		GitHub map[string]struct {
 			Owner string `mapstructure:"owner"`
 			Token string `mapstructure:"token"`
@@ -65,14 +73,20 @@ func configClient(path string) (internal.Client, error) {
 		return internal.Client{}, fmt.Errorf("fail to unmarshal the configuration: %w", err)
 	}
 
-	var github []internal.ClientProviderGithub
-	for _, provider := range cfg.Provider {
-		for _, gh := range provider.GitHub {
-			github = append(github, internal.ClientProviderGithub{
-				Token: gh.Token,
-				Owner: gh.Owner,
-			})
-		}
+	github := make([]internal.ClientProviderGithub, 0, len(cfg.Provider.GitHub))
+	for _, gh := range cfg.Provider.GitHub {
+		github = append(github, internal.ClientProviderGithub{
+			Token: gh.Token,
+			Owner: gh.Owner,
+		})
+	}
+
+	web := internal.ClientProviderWeb{
+		Config:          cfg.Provider.Web.Header,
+		ConfigOverwrite: make(map[string]http.Header, len(cfg.Provider.Web.Overwrite)),
+	}
+	for _, overwrite := range cfg.Provider.Web.Overwrite {
+		web.ConfigOverwrite[overwrite.Endpoint] = overwrite.Header
 	}
 
 	return internal.Client{
@@ -82,6 +96,7 @@ func configClient(path string) (internal.Client, error) {
 		},
 		Provider: internal.ClientProvider{
 			Github: github,
+			Web:    web,
 		},
 	}, nil
 }

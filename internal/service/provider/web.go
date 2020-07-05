@@ -32,17 +32,34 @@ func (w webClientTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	return w.client.Do(req)
 }
 
+type webConfigRegex struct {
+	expression regexp.Regexp
+	key        string
+}
+
+// WebConfig has the information to enhance the request.
+type WebConfig struct {
+	Header http.Header
+}
+
 // Web handle the verification of HTTP endpoints.
 type Web struct {
-	client  webClient
-	browser *rod.Browser
-	regex   regexp.Regexp
+	Config          WebConfig
+	ConfigOverwrite map[string]WebConfig
+
+	browser              *rod.Browser
+	client               webClient
+	regex                regexp.Regexp
+	regexConfigOverwrite []webConfigRegex
 }
 
 // Init internal state.
 func (w *Web) Init() error {
 	if err := w.initRegex(); err != nil {
 		return fmt.Errorf("fail to initialize the regex: %w", err)
+	}
+	if err := w.initRegexConfig(); err != nil {
+		return fmt.Errorf("fail to initialize the regex config: %w", err)
 	}
 	w.initHTTP()
 	w.initBrowser()
@@ -68,6 +85,7 @@ func (w Web) Valid(ctx context.Context, _, uri string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("fail to create the HTTP request: %w", err)
 	}
+	w.configRequest(req)
 
 	resp, err := w.client.Do(req)
 	if err != nil {
@@ -137,6 +155,18 @@ func (w *Web) initRegex() error {
 	return nil
 }
 
+func (w *Web) initRegexConfig() error {
+	w.regexConfigOverwrite = make([]webConfigRegex, 0, len(w.regexConfigOverwrite))
+	for key := range w.ConfigOverwrite {
+		regex, err := regexp.Compile(key)
+		if err != nil {
+			return fmt.Errorf("fail to compile the expression '%s': %w", key, err)
+		}
+		w.regexConfigOverwrite = append(w.regexConfigOverwrite, webConfigRegex{key: key, expression: *regex})
+	}
+	return nil
+}
+
 func (w *Web) initHTTP() {
 	w.client = &http.Client{
 		Transport: webClientTransport{client: http.DefaultClient},
@@ -175,4 +205,24 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 
 	result := page.Eval("document.documentElement.innerHTML").String()
 	return w.validAnchor(bytes.NewBufferString(result), anchor)
+}
+
+func (w Web) configRequest(r *http.Request) {
+	setHeader := func(header http.Header) {
+		for key, values := range header {
+			for _, value := range values {
+				r.Header.Set(key, value)
+			}
+		}
+	}
+
+	setHeader(w.Config.Header)
+
+	endpoint := r.URL.String()
+	for _, cfg := range w.regexConfigOverwrite {
+		if cfg.expression.Match([]byte(endpoint)) {
+			setHeader(w.ConfigOverwrite[cfg.key].Header)
+			return
+		}
+	}
 }

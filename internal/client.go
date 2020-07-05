@@ -31,9 +31,16 @@ type ClientProviderGithub struct {
 	Repository string
 }
 
+// ClientProviderWeb holds the configuration for the web provider.
+type ClientProviderWeb struct {
+	Config          http.Header
+	ConfigOverwrite map[string]http.Header
+}
+
 // ClientProvider holds the configuration for the providers.
 type ClientProvider struct {
 	Github []ClientProviderGithub
+	Web    ClientProviderWeb
 }
 
 // Client is responsible to bootstrap the application.
@@ -101,7 +108,14 @@ func (c *Client) init() error {
 		c.providers = append(c.providers, client)
 	}
 
-	var w provider.Web
+	webConfigOverwrites := make(map[string]provider.WebConfig, len(c.Provider.Web.ConfigOverwrite))
+	for key, value := range c.Provider.Web.ConfigOverwrite {
+		webConfigOverwrites[key] = provider.WebConfig{Header: value}
+	}
+	w := provider.Web{
+		Config:          provider.WebConfig{Header: c.Provider.Web.Config},
+		ConfigOverwrite: webConfigOverwrites,
+	}
 	if err := w.Init(); err != nil {
 		return fmt.Errorf("fail to initialize the web provider: %w", err)
 	}
