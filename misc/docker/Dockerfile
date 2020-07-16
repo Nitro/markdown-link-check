@@ -4,6 +4,10 @@ FROM golang:1.14.3-buster
 
 SHELL ["/bin/bash", "-c"]
 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends chromium=83.* \
+  && rm -rf /var/lib/apt/lists/*
+
 RUN wget https://github.com/hadolint/hadolint/releases/download/v1.17.6/hadolint-Linux-x86_64 -O /usr/local/bin/hadolint \
   && chmod +x /usr/local/bin/hadolint
 

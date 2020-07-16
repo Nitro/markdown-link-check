@@ -1,11 +1,9 @@
 package provider
 
 import (
-	"bytes"
 	"context"
-	"errors"
-	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -63,162 +61,149 @@ func TestWebAuthority(t *testing.T) {
 func TestWebValid(t *testing.T) {
 	t.Parallel()
 
+	// The fragment is not sent at the HTTP request, so we have some weird endpoints like
+	// '/valid-fragment-title-from-browser' to have the needed granularity to execute the tests.
+	//
+	// More details on this issue: https://github.com/golang/go/issues/3805#issuecomment-66068331
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		const validEndpoint = "/valid"
+
+		if r.URL.Path == validEndpoint {
+			return
+		}
+
+		if r.URL.Path == "/301" {
+			r.URL.Path = validEndpoint
+			w.Header().Set("location", r.URL.String())
+			w.WriteHeader(http.StatusMovedPermanently)
+			return
+		}
+
+		if r.URL.Path == "/308" {
+			r.URL.Path = validEndpoint
+			w.Header().Set("location", r.URL.String())
+			w.WriteHeader(http.StatusPermanentRedirect)
+			return
+		}
+
+		if r.URL.Path == "/valid-fragment-title" {
+			_, err := w.Write([]byte(`<a href="#title"/>`))
+			require.NoError(t, err)
+			return
+		}
+
+		if r.URL.Path == "/valid-fragment-title-from-browser" {
+			var response string
+			if r.Header.Get("user-agent") != "Go-http-client/1.1" {
+				response = `<a href="#title"/>`
+			}
+			_, err := w.Write([]byte(response))
+			require.NoError(t, err)
+			return
+		}
+
+		if r.URL.Path == "/307" {
+			w.WriteHeader(http.StatusTemporaryRedirect)
+			return
+		}
+
+		if r.URL.Path == "/404" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		if r.URL.Path == "/invalid-fragment-broken" {
+			_, err := w.Write([]byte(`<a href="#title"/>`))
+			require.NoError(t, err)
+			return
+		}
+
+		require.FailNow(t, "not expected to reach this point")
+	}))
+	defer server.Close()
+	serverEndpoint, err := url.Parse(server.URL)
+	require.NoError(t, err)
+
 	tests := []struct {
 		message   string
 		ctx       context.Context
-		client    webClientMock
-		uri       string
+		endpoint  url.URL
 		isValid   bool
 		shouldErr bool
 	}{
 		{
 			message:   "attest the URI as valid",
 			ctx:       context.Background(),
-			uri:       "https://go.dev",
+			endpoint:  url.URL{Path: "/valid"},
 			shouldErr: false,
 			isValid:   true,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "https", Host: "go.dev"}},
-				},
-				response: []*http.Response{
-					{
-						StatusCode: http.StatusOK,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-				},
-			},
 		},
 		{
 			message:   "attest the URI as valid after a move permanently redirect (301)",
 			ctx:       context.Background(),
-			uri:       "http://go.dev",
+			endpoint:  url.URL{Path: "/301"},
 			shouldErr: false,
 			isValid:   true,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "http", Host: "go.dev"}},
-					{URL: &url.URL{Scheme: "https", Host: "go.dev"}},
-				},
-				response: []*http.Response{
-					{
-						Header:     map[string][]string{"Location": {"https://go.dev"}},
-						StatusCode: http.StatusMovedPermanently,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-					{
-						StatusCode: http.StatusOK,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-				},
-			},
 		},
 		{
 			message:   "attest the URI as valid after a permanent redirect (308)",
 			ctx:       context.Background(),
-			uri:       "http://go.dev",
+			endpoint:  url.URL{Path: "/308"},
 			shouldErr: false,
 			isValid:   true,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "http", Host: "go.dev"}},
-					{URL: &url.URL{Scheme: "https", Host: "go.dev"}},
-				},
-				response: []*http.Response{
-					{
-						Header:     map[string][]string{"Location": {"https://go.dev"}},
-						StatusCode: http.StatusPermanentRedirect,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-					{
-						StatusCode: http.StatusOK,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-				},
-			},
 		},
 		{
 			message:   "attest the URI as valid and also have a valid anchor",
 			ctx:       context.Background(),
-			uri:       "https://go.dev#title",
+			endpoint:  url.URL{Path: "/valid-fragment-title", Fragment: "title"},
 			shouldErr: false,
 			isValid:   true,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "https", Host: "go.dev", Fragment: "title"}},
-				},
-				response: []*http.Response{
-					{
-						StatusCode: http.StatusOK,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(`<a href="#title"/>`)),
-					},
-				},
-			},
+		},
+		{
+			message:   "attest the URI as valid and also have a valid anchor at the browser",
+			ctx:       context.Background(),
+			endpoint:  url.URL{Path: "/valid-fragment-title-from-browser", Fragment: "title"},
+			shouldErr: false,
+			isValid:   true,
 		},
 		{
 			message:   "attest the URI as invalid because of a temporary redirect",
 			ctx:       context.Background(),
-			uri:       "http://go.dev",
+			endpoint:  url.URL{Path: "/307"},
 			shouldErr: false,
 			isValid:   false,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "https", Host: "go.dev"}},
-				},
-				response: []*http.Response{
-					{
-						Header:     map[string][]string{"Location": {"https://go.dev"}},
-						StatusCode: http.StatusTemporaryRedirect,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-				},
-			},
 		},
 		{
 			message:   "attest the URI as invalid because of a not found status",
 			ctx:       context.Background(),
-			uri:       "https://go.dev",
+			endpoint:  url.URL{Path: "/404"},
 			shouldErr: false,
 			isValid:   false,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "https", Host: "go.dev"}},
-				},
-				response: []*http.Response{
-					{
-						StatusCode: http.StatusNotFound,
-						Body:       ioutil.NopCloser(bytes.NewReader([]byte{})),
-					},
-				},
-			},
 		},
 		{
 			message:   "attest the URI as invalid because of a not found anchor",
 			ctx:       context.Background(),
-			uri:       "https://go.dev#broken",
+			endpoint:  url.URL{Path: "/invalid-fragment-broken", Fragment: "broken"},
 			shouldErr: false,
 			isValid:   false,
-			client: webClientMock{
-				request: []http.Request{
-					{URL: &url.URL{Scheme: "https", Host: "go.dev", Fragment: "broken"}},
-				},
-				response: []*http.Response{
-					{
-						StatusCode: http.StatusOK,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(`<a href="#title"/>`)),
-					},
-				},
-			},
 		},
+	}
+
+	genEndpoint := func(endpoint url.URL) string {
+		result := *serverEndpoint
+		result.Path = endpoint.Path
+		result.Fragment = endpoint.Fragment
+		return result.String()
 	}
 
 	for i := 0; i < len(tests); i++ {
 		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
-			client := Web{client: &tt.client}
+			var client Web
 			require.NoError(t, client.Init())
+			defer client.Close()
 
-			isValid, err := client.Valid(tt.ctx, "", tt.uri)
+			isValid, err := client.Valid(tt.ctx, "", genEndpoint(tt.endpoint))
 			require.Equal(t, tt.shouldErr, (err != nil))
 			if err != nil {
 				return
@@ -226,22 +211,4 @@ func TestWebValid(t *testing.T) {
 			require.Equal(t, tt.isValid, isValid)
 		})
 	}
-}
-
-type webClientMock struct {
-	request  []http.Request
-	response []*http.Response
-	index    int
-}
-
-func (c *webClientMock) Do(req *http.Request) (*http.Response, error) {
-	var (
-		request  = c.request[c.index]
-		response = c.response[c.index]
-	)
-	c.index++
-	if request.URL.String() != req.URL.String() {
-		return nil, errors.New("invalid endpoint")
-	}
-	return response, nil
 }

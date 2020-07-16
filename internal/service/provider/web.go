@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -8,9 +9,16 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sync"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-rod/rod"
+	"github.com/go-rod/rod/lib/launcher"
 )
+
+// Rod is very sensitive and for now, the best approach is to have a mutex at the package level protecting all the
+// operations.
+var webBrowserMutex sync.Mutex // nolint: gochecknoglobals
 
 type webClient interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -26,8 +34,9 @@ func (w webClientTransport) RoundTrip(req *http.Request) (*http.Response, error)
 
 // Web handle the verification of HTTP endpoints.
 type Web struct {
-	client webClient
-	regex  regexp.Regexp
+	client  webClient
+	browser *rod.Browser
+	regex   regexp.Regexp
 }
 
 // Init internal state.
@@ -36,6 +45,15 @@ func (w *Web) Init() error {
 		return fmt.Errorf("fail to initialize the regex: %w", err)
 	}
 	w.initHTTP()
+	w.initBrowser()
+	return nil
+}
+
+// Close the provider.
+func (w *Web) Close() error {
+	if err := w.browser.CloseE(); err != nil {
+		return fmt.Errorf("failed to close the browser: %w", err)
+	}
 	return nil
 }
 
@@ -71,7 +89,14 @@ func (w Web) Valid(ctx context.Context, _, uri string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("fail to verify the anchor: %w", err)
 	}
+	if validAnchor {
+		return true, nil
+	}
 
+	validAnchor, err = w.validAnchorBrowser(ctx, uri, endpoint.Fragment)
+	if err != nil {
+		return false, fmt.Errorf("fail to verify the anchor with a browser: %w", err)
+	}
 	return validAnchor, nil
 }
 
@@ -113,12 +138,8 @@ func (w *Web) initRegex() error {
 }
 
 func (w *Web) initHTTP() {
-	if w.client == nil {
-		w.client = &http.Client{}
-	}
-
 	w.client = &http.Client{
-		Transport: webClientTransport{client: w.client},
+		Transport: webClientTransport{client: http.DefaultClient},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			switch req.Response.StatusCode {
 			case http.StatusPermanentRedirect, http.StatusMovedPermanently:
@@ -128,4 +149,30 @@ func (w *Web) initHTTP() {
 			}
 		},
 	}
+}
+
+func (w *Web) initBrowser() {
+	webBrowserMutex.Lock()
+	defer webBrowserMutex.Unlock()
+
+	launcherURL := launcher.New().Headless(true).Launch()
+	w.browser = rod.New().ControlURL(launcherURL).Connect()
+}
+
+func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor string) (_ bool, err error) {
+	webBrowserMutex.Lock()
+	defer webBrowserMutex.Unlock()
+
+	pctx, pctxCancel := context.WithCancel(ctx)
+	defer pctxCancel()
+
+	page := w.browser.Page(endpoint).Context(pctx, pctxCancel).WaitLoad()
+	defer func() {
+		if perr := page.CloseE(); perr != nil {
+			err = fmt.Errorf("failed to close the browser tab: %w", perr)
+		}
+	}()
+
+	result := page.Eval("document.documentElement.innerHTML").String()
+	return w.validAnchor(bytes.NewBufferString(result), anchor)
 }
