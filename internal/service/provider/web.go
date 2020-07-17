@@ -196,7 +196,9 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	pctx, pctxCancel := context.WithCancel(ctx)
 	defer pctxCancel()
 
-	page := w.browser.Page(endpoint).Context(pctx, pctxCancel).WaitLoad()
+	page := w.browser.Page("").Context(pctx, pctxCancel)
+	defer page.SetExtraHeaders(w.genHeaders(endpoint)...)()
+	page = page.Navigate(endpoint).WaitLoad()
 	defer func() {
 		if perr := page.CloseE(); perr != nil {
 			err = fmt.Errorf("failed to close the browser tab: %w", perr)
@@ -225,4 +227,30 @@ func (w Web) configRequest(r *http.Request) {
 			return
 		}
 	}
+}
+
+func (w Web) genHeaders(endpoint string) []string {
+	header := make(http.Header)
+
+	setHeader := func(source http.Header) {
+		for key, values := range source {
+			for _, value := range values {
+				header.Set(key, value)
+			}
+		}
+	}
+	setHeader(w.Config.Header)
+
+	for _, cfg := range w.regexConfigOverwrite {
+		if cfg.expression.MatchString(endpoint) {
+			setHeader(w.ConfigOverwrite[cfg.key].Header)
+			break
+		}
+	}
+
+	results := make([]string, 0, len(header)*2)
+	for key := range header {
+		results = append(results, key, header.Get(key))
+	}
+	return results
 }
