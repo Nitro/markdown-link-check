@@ -11,12 +11,12 @@ ignore:
     - temp/files
 
 provider:
-  http:
+  web:
     header:
       User-Agent: Chrome
 
     overwrite:
-      ^https:\/\/custom-website\.com:
+      - endpoint: ^https:\/\/custom-website\.com
         header:
           Content-Type: application/json
           User-Agent: Firefox
