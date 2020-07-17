@@ -67,6 +67,8 @@ func TestWebValid(t *testing.T) {
 	//
 	// More details on this issue: https://github.com/golang/go/issues/3805#issuecomment-66068331
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "true", r.Header.Get("control"))
+
 		const validEndpoint = "/valid"
 
 		if r.URL.Path == validEndpoint {
@@ -132,6 +134,7 @@ func TestWebValid(t *testing.T) {
 		}
 
 		if r.URL.Path == "/invalid-fragment-broken" {
+			require.Equal(t, "true", r.Header.Get("control-browser"))
 			_, err := w.Write([]byte(`<a href="#title"/>`))
 			require.NoError(t, err)
 			return
@@ -225,11 +228,16 @@ func TestWebValid(t *testing.T) {
 		tt := tests[i]
 		t.Run("Should "+tt.message, func(t *testing.T) {
 			client := Web{
-				Config:          WebConfig{Header: make(http.Header)},
-				ConfigOverwrite: map[string]WebConfig{"http://localhost": {Header: make(http.Header)}},
+				Config: WebConfig{Header: make(http.Header)},
+				ConfigOverwrite: map[string]WebConfig{
+					"http://localhost": {Header: make(http.Header)},
+					"http://127.0.0.1": {Header: make(http.Header)},
+				},
 			}
+			client.Config.Header.Set("control", "true")
 			client.Config.Header.Set("user-agent", "firefox")
 			client.ConfigOverwrite["http://localhost"].Header.Set("user-agent", "chrome")
+			client.ConfigOverwrite["http://127.0.0.1"].Header.Set("control-browser", "true")
 			require.NoError(t, client.Init())
 			defer client.Close()
 
