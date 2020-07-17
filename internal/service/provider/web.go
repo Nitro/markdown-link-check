@@ -62,7 +62,9 @@ func (w *Web) Init() error {
 		return fmt.Errorf("fail to initialize the regex config: %w", err)
 	}
 	w.initHTTP()
-	w.initBrowser()
+	if err := w.initBrowser(); err != nil {
+		return fmt.Errorf("failed to initialize the browser: %w", err)
+	}
 	return nil
 }
 
@@ -181,12 +183,20 @@ func (w *Web) initHTTP() {
 	}
 }
 
-func (w *Web) initBrowser() {
+func (w *Web) initBrowser() error {
 	webBrowserMutex.Lock()
 	defer webBrowserMutex.Unlock()
 
-	launcherURL := launcher.New().Headless(true).Launch()
-	w.browser = rod.New().ControlURL(launcherURL).Connect()
+	launcherURL, err := launcher.New().Headless(true).LaunchE()
+	if err != nil {
+		return fmt.Errorf("failed to launch the browser: %w", err)
+	}
+
+	w.browser = rod.New().ControlURL(launcherURL)
+	if err = w.browser.ConnectE(); err != nil {
+		return fmt.Errorf("failed to connect to the browser: %w", err)
+	}
+	return nil
 }
 
 func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor string) (_ bool, err error) {
@@ -196,17 +206,33 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	pctx, pctxCancel := context.WithCancel(ctx)
 	defer pctxCancel()
 
-	page := w.browser.Page("").Context(pctx, pctxCancel)
-	defer page.SetExtraHeaders(w.genHeaders(endpoint)...)()
-	page = page.Navigate(endpoint).WaitLoad()
+	page, err := w.browser.PageE("")
+	if err != nil {
+		return false, fmt.Errorf("failed to create the browser page: %w", err)
+	}
+
+	if _, err = page.Context(pctx, pctxCancel).SetExtraHeadersE(w.genHeaders(endpoint)); err != nil {
+		return false, fmt.Errorf("failed to set the headers at the browser page: %w", err)
+	}
+
+	if err := page.NavigateE(endpoint); err != nil {
+		return false, fmt.Errorf("failed to navigate to the page: %w", err)
+	}
+
+	if err := page.WaitLoadE(); err != nil {
+		return false, fmt.Errorf("failed to wait for the page to load: %w", err)
+	}
 	defer func() {
 		if perr := page.CloseE(); perr != nil {
 			err = fmt.Errorf("failed to close the browser tab: %w", perr)
 		}
 	}()
 
-	result := page.Eval("document.documentElement.innerHTML").String()
-	return w.validAnchor(bytes.NewBufferString(result), anchor)
+	result, err := page.EvalE(true, "", "document.documentElement.innerHTML", nil)
+	if err != nil {
+		return false, fmt.Errorf("failed to execute the javascript at the page: %w", err)
+	}
+	return w.validAnchor(bytes.NewBufferString(result.Value.String()), anchor)
 }
 
 func (w Web) configRequest(r *http.Request) {
