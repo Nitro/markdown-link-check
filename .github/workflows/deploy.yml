@@ -8,7 +8,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-18.04
-    container: gonitro/markdown-link-check:3
+    container: gonitro/markdown-link-check:4
     timeout-minutes: 10
 
     steps:
