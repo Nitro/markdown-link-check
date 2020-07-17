@@ -1,4 +1,4 @@
-# Markdown Link Check
+# <img src="./misc/logo/logo.png" width="25" height="25"/> Markdown Link Check
 This application is used to find broken links at markdown files.
 
 ## Providers
