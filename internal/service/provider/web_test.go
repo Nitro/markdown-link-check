@@ -145,77 +145,66 @@ func TestWebValid(t *testing.T) {
 
 	tests := []struct {
 		message   string
-		ctx       context.Context
 		endpoint  url.URL
 		isValid   bool
 		shouldErr bool
 	}{
 		{
 			message:   "attest the URI as valid",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/valid"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid after a move permanently redirect (301)",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/301"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid after a permanent redirect (308)",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/308"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid and also have a valid anchor",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/valid-fragment-title", Fragment: "title"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid and also have a valid anchor at the browser",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/valid-fragment-title-from-browser", Fragment: "title"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid and have the correct user agent #1",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/valid-user-agent-chrome", Opaque: "chrome"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as valid and have the correct user agent #2",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/valid-user-agent-firefox"},
 			shouldErr: false,
 			isValid:   true,
 		},
 		{
 			message:   "attest the URI as invalid because of a temporary redirect",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/307"},
 			shouldErr: false,
 			isValid:   false,
 		},
 		{
 			message:   "attest the URI as invalid because of a not found status",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/404"},
 			shouldErr: false,
 			isValid:   false,
 		},
 		{
 			message:   "attest the URI as invalid because of a not found anchor",
-			ctx:       context.Background(),
 			endpoint:  url.URL{Path: "/invalid-fragment-broken", Fragment: "broken"},
 			shouldErr: false,
 			isValid:   false,
@@ -244,7 +233,7 @@ func TestWebValid(t *testing.T) {
 			require.NoError(t, client.Init())
 			defer client.Close()
 
-			isValid, err := client.Valid(tt.ctx, "", genEndpoint(tt.endpoint))
+			isValid, err := client.Valid(context.Background(), "", genEndpoint(tt.endpoint))
 			require.Equal(t, tt.shouldErr, (err != nil))
 			if err != nil {
 				return
