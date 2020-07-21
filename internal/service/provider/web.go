@@ -210,6 +210,11 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	if err != nil {
 		return false, fmt.Errorf("failed to create the browser page: %w", err)
 	}
+	defer func() {
+		if perr := page.CloseE(); perr != nil {
+			err = fmt.Errorf("failed to close the browser tab: %w", perr)
+		}
+	}()
 
 	if _, err = page.Context(pctx, pctxCancel).SetExtraHeadersE(w.genHeaders(endpoint)); err != nil {
 		return false, fmt.Errorf("failed to set the headers at the browser page: %w", err)
@@ -222,11 +227,6 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	if err := page.WaitLoadE(); err != nil {
 		return false, fmt.Errorf("failed to wait for the page to load: %w", err)
 	}
-	defer func() {
-		if perr := page.CloseE(); perr != nil {
-			err = fmt.Errorf("failed to close the browser tab: %w", perr)
-		}
-	}()
 
 	result, err := page.EvalE(true, "", "document.documentElement.innerHTML", nil)
 	if err != nil {
