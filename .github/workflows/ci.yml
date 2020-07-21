@@ -36,7 +36,7 @@ jobs:
         run: make go-lint
 
       - name: Run Go Test
-        run: make test ARGS='-json' | tparse -all
+        run: make go-test ARGS='-json' | tparse -all
 
   build:
     name: Build

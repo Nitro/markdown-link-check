@@ -1,12 +1,12 @@
 SHELL := /bin/bash
 DOCKER_IMAGE := gonitro/markdown-link-check:5
 
-.PHONY: build
-build:
+.PHONY: go-build
+go-build:
 	@go build -o cmd/markdown-link-check cmd/main.go
 
-.PHONY: test
-test:
+.PHONY: go-test
+go-test:
 	@go test -race -cover -covermode=atomic -timeout=1m ${ARGS} ./...
 
 .PHONY: go-lint

@@ -17,7 +17,7 @@ The web provider verifies public HTTP endpoints. The link is assumed as valid if
 ```bash
 git clone git@github.com:Nitro/markdown-link-check.git
 cd markdown-link-check
-make build # This generate a binary at './cmd/markdown-link-check'
+make go-build # This generate a binary at './cmd/markdown-link-check'
 ```
 
 ## How to use it?
