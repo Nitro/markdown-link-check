@@ -7,7 +7,7 @@ build:
 
 .PHONY: test
 test:
-	@go test -race -cover -covermode=atomic ${ARGS} ./...
+	@go test -race -cover -covermode=atomic -timeout=1m ${ARGS} ./...
 
 .PHONY: go-lint
 go-lint:
