@@ -92,6 +92,8 @@ github.com/go-playground/validator/v10 v10.3.0 h1:nZU+7q+yJoFmwvNgv/LnPUkwPal62+
 github.com/go-playground/validator/v10 v10.3.0/go.mod h1:uOYAAleCW8F/7oMFd6aG0GOhaH6EGOAJShg8Id5JGkI=
 github.com/go-rod/rod v0.46.8 h1:yjO6pUyBsedpt5kNzA50MFaSu1HRRI684aJ8bv2/l3s=
 github.com/go-rod/rod v0.46.8/go.mod h1:1q5Z8McpoDupkZP6UUgkxcftveRY2fVhZXoiFewEsmY=
+github.com/go-rod/rod v0.48.2 h1:FoMexn1fwE3Amj8XDz9e2hWZaj/MyJZhVxc/YzP+xFQ=
+github.com/go-rod/rod v0.48.2/go.mod h1:1q5Z8McpoDupkZP6UUgkxcftveRY2fVhZXoiFewEsmY=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=
