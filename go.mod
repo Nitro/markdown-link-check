@@ -9,7 +9,7 @@ require (
 	github.com/creack/pty v1.1.11 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-playground/validator/v10 v10.3.0 // indirect
-	github.com/go-rod/rod v0.46.8
+	github.com/go-rod/rod v0.49.5
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
