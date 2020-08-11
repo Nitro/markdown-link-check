@@ -4,6 +4,10 @@ on:
       - '*'
       - '!master'
 
+  pull_request:
+    branches:
+      - 'dependabot/**'
+
 name: CI
 jobs:
   quality:
