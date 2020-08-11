@@ -1,8 +1,12 @@
 on:
   push:
     branches:
-      - '*'
+      - '**'
       - '!master'
+
+  pull_request:
+    branches:
+      - 'dependabot/**'
 
 name: CI
 jobs:
