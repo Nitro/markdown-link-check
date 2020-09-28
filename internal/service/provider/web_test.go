@@ -219,7 +219,7 @@ func TestWebValid(t *testing.T) {
 		result.Path = endpoint.Path
 		result.Fragment = endpoint.Fragment
 		if endpoint.Opaque == "chrome" {
-			result.Host = strings.Replace(result.Host, "127.0.0.1", "localhost", -1)
+			result.Host = strings.ReplaceAll(result.Host, "127.0.0.1", "localhost")
 		}
 		return result.String()
 	}
