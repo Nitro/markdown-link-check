@@ -70,7 +70,7 @@ func (w *Web) Init() error {
 
 // Close the provider.
 func (w *Web) Close() error {
-	if err := w.browser.CloseE(); err != nil {
+	if err := w.browser.Close(); err != nil {
 		return fmt.Errorf("failed to close the browser: %w", err)
 	}
 	return nil
@@ -187,13 +187,13 @@ func (w *Web) initBrowser() error {
 	webBrowserMutex.Lock()
 	defer webBrowserMutex.Unlock()
 
-	launcherURL, err := launcher.New().Headless(true).LaunchE()
+	launcherURL, err := launcher.New().Headless(true).Launch()
 	if err != nil {
 		return fmt.Errorf("failed to launch the browser: %w", err)
 	}
 
 	w.browser = rod.New().ControlURL(launcherURL)
-	if err = w.browser.ConnectE(); err != nil {
+	if err = w.browser.Connect(); err != nil {
 		return fmt.Errorf("failed to connect to the browser: %w", err)
 	}
 	return nil
@@ -206,29 +206,29 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	pctx, pctxCancel := context.WithCancel(ctx)
 	defer pctxCancel()
 
-	page, err := w.browser.PageE("")
+	page, err := w.browser.Page("")
 	if err != nil {
 		return false, fmt.Errorf("failed to create the browser page: %w", err)
 	}
 	defer func() {
-		if perr := page.CloseE(); perr != nil {
+		if perr := page.Close(); perr != nil {
 			err = fmt.Errorf("failed to close the browser tab: %w", perr)
 		}
 	}()
 
-	if _, err = page.Context(pctx, pctxCancel).SetExtraHeadersE(w.genHeaders(endpoint)); err != nil {
+	if _, err = page.Context(pctx).SetExtraHeaders(w.genHeaders(endpoint)); err != nil {
 		return false, fmt.Errorf("failed to set the headers at the browser page: %w", err)
 	}
 
-	if err := page.NavigateE(endpoint); err != nil {
+	if err := page.Navigate(endpoint); err != nil {
 		return false, fmt.Errorf("failed to navigate to the page: %w", err)
 	}
 
-	if err := page.WaitLoadE(); err != nil {
+	if err := page.WaitLoad(); err != nil {
 		return false, fmt.Errorf("failed to wait for the page to load: %w", err)
 	}
 
-	result, err := page.EvalE(true, "", "document.documentElement.innerHTML", nil)
+	result, err := page.Eval("", "document.documentElement.innerHTML", nil)
 	if err != nil {
 		return false, fmt.Errorf("failed to execute the javascript at the page: %w", err)
 	}
