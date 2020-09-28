@@ -7,7 +7,7 @@ name: Deploy
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     container: gonitro/markdown-link-check:7
     timeout-minutes: 10
 
