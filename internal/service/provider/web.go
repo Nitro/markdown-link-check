@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -91,7 +92,7 @@ func (w Web) Valid(ctx context.Context, _, uri string) (bool, error) {
 
 	resp, err := w.client.Do(req)
 	if err != nil {
-		return false, nil
+		return false, &webError{base: err, requestHeader: req.Header}
 	}
 	defer resp.Body.Close()
 
@@ -102,7 +103,18 @@ func (w Web) Valid(ctx context.Context, _, uri string) (bool, error) {
 
 	isValid := ((resp.StatusCode >= 200) && (resp.StatusCode < 300))
 	if !isValid {
-		return false, nil
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return false, fmt.Errorf("failed to read the response body: %w", err)
+		}
+
+		return false, &webError{
+			base:           err,
+			requestHeader:  req.Header,
+			responseHeader: resp.Header,
+			status:         resp.StatusCode,
+			body:           string(body),
+		}
 	}
 
 	validAnchor, err := w.validAnchor(resp.Body, endpoint.Fragment)
