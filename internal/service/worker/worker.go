@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"nitro/markdown-link-check/internal/service"
+
+	"github.com/logrusorgru/aurora"
 )
 
 // Provider represents the providers resonsible to process the entries.
@@ -49,8 +51,10 @@ func (w Worker) Process(ctx context.Context, entries []service.Entry) ([]service
 	}
 
 	var (
-		errors []workerErrorUnit
-		result []service.Entry
+		errors    []workerErrorUnit
+		result    []service.Entry
+		processed int
+		total     = len(entries)
 	)
 
 	for _, entry := range entries {
@@ -60,12 +64,17 @@ func (w Worker) Process(ctx context.Context, entries []service.Entry) ([]service
 			}
 
 			valid, err := provider.Valid(ctx, entry.Path, entry.Link)
-			if err != nil {
+			if e, ok := err.(service.EnhancedError); err != nil && !ok {
 				errors = append(errors, workerErrorUnit{err: err, entry: entry})
 			} else {
+				if ok {
+					entry.FailReason = e.PrettyPrint
+				}
 				entry.Valid = valid
 				result = append(result, entry)
 			}
+			processed++
+			fmt.Printf("%d of %d entries processed\n", aurora.Bold(processed), aurora.Bold(total))
 			break
 		}
 	}

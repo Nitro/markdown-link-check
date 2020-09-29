@@ -68,6 +68,13 @@ func (c Client) Run(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("fail to scan the files: %w", err)
 	}
 
+	// entries = []service.Entry{
+	// 	{
+	// 		Path: "/Users/dbernardes/Source/Nitro/platform/engineering-documentation/deprecated/practices/account-links.md",
+	// 		Link: "https://www.cloudflare.com/adasdasdadasdas",
+	// 	},
+	// }
+
 	w := worker.Worker{Providers: c.providers}
 	entries, err = w.Process(ctx, entries)
 	if err != nil {
@@ -159,6 +166,35 @@ func (c Client) output(entries []service.Entry) bool {
 		}
 		fmt.Printf("\n\n")
 	}
+
+	// Printing the details of the failure.
+	result = false
+	iter = c.aggregate(entries)
+	for {
+		key, entries, ok := iter()
+		if !ok {
+			break
+		}
+		if !c.hasInvalidLink(entries) {
+			continue
+		}
+		if !result {
+			result = true
+		}
+
+		for _, entry := range entries {
+			if entry.Valid || (entry.FailReason == nil) {
+				continue
+			}
+			fmt.Printf(
+				"The link '%s' at the file '%s' failed because of:\n",
+				aurora.Bold(entry.Link), aurora.Bold(c.relativePath(key)),
+			)
+			entry.FailReason()
+		}
+		fmt.Printf("\n\n")
+	}
+
 	return result
 }
 

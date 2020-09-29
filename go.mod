@@ -10,6 +10,7 @@ require (
 	github.com/go-rod/rod v0.69.0
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/kr/pretty v0.1.0
 	github.com/logrusorgru/aurora v2.0.3+incompatible
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.4
