@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-DOCKER_IMAGE := gonitro/markdown-link-check:7
+DOCKER_IMAGE := 574097476646.dkr.ecr.eu-central-1.amazonaws.com/tools/markdown-link-check:7
 
 .PHONY: go-build
 go-build:
