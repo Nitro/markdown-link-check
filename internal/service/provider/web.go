@@ -14,6 +14,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
+	"github.com/go-rod/rod/lib/proto"
 )
 
 // Rod is very sensitive and for now, the best approach is to have a mutex at the package level protecting all the
@@ -206,7 +207,7 @@ func (w Web) validAnchorBrowser(ctx context.Context, endpoint string, anchor str
 	pctx, pctxCancel := context.WithCancel(ctx)
 	defer pctxCancel()
 
-	page, err := w.browser.Page("")
+	page, err := w.browser.Page(proto.TargetCreateTarget{})
 	if err != nil {
 		return false, fmt.Errorf("failed to create the browser page: %w", err)
 	}
