@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-DOCKER_IMAGE := gonitro/markdown-link-check:7
+DOCKER_IMAGE := gonitro/markdown-link-check:8
 
 .PHONY: go-build
 go-build:
@@ -7,7 +7,7 @@ go-build:
 
 .PHONY: go-test
 go-test:
-	@go test -race -cover -covermode=atomic -timeout=1m ${ARGS} ./...
+	@go test -race -cover -covermode=atomic -timeout=5m ${ARGS} ./...
 
 .PHONY: go-lint
 go-lint:
