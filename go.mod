@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/PuerkitoBio/goquery v1.7.1
 	github.com/alecthomas/kong v0.2.17
-	github.com/go-rod/rod v0.101.4
+	github.com/go-rod/rod v0.101.5
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible
